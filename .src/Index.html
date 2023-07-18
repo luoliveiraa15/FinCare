@@ -1,0 +1,283 @@
+<html>
+<head>
+  <title>Controle de Gastos</title>
+  <style>
+    table, th, td {
+      border: 1px solid black;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Controle de Gastos</h1>
+  <p>Insira os valores e descrições de suas receitas e despesas abaixo. Selecione a categoria de cada despesa.</p>
+  <form id="form">
+    <table id="table">
+      <tr>
+        <th>Tipo</th>
+        <th>Valor (R$)</th>
+        <th>Descrição</th>
+        <th>Categoria</th>
+      </tr>
+      <tr>
+        <td><input type="radio" name="tipo" value="receita" checked> Receita</td>
+        <td><input type="number" name="valor" min="0" step="0.01" required></td>
+        <td><input type="text" name="descricao" required></td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td><input type="radio" name="tipo" value="despesa"> Despesa</td>
+        <td><input type="number" name="valor" min="0" step="0.01" required></td>
+        <td><input type="text" name="descricao" required></td>
+        <td><select name="categoria" required>
+          <option value="">Selecione uma categoria</option>
+          <option value="essencial">Essencial (50%)</option>
+          <option value="livre">Livre (35%)</option>
+          <option value="divida">Dívida/Economia (15%)</option>
+        </select></td>
+      </tr>
+    </table>
+    <button type="submit">Adicionar</button>
+  </form>
+
+  <h2>Resumo</h2>
+
+  <p id="resumo"></p>
+
+  <h2>Detalhes</h2>
+
+  <table id="detalhes">
+    <tr>
+      <th>Data</th>
+      <th>Tipo</th>
+      <th>Valor (R$)</th>
+      <th>Descrição</th>
+      <th>Categoria</th>
+    </tr>
+
+  </table>
+
+  <!-- Script para manipular os dados do formulário e da tabela -->
+  <!-- Usando localStorage para salvar os dados inseridos -->
+  <!-- Usando Date para separar por mês do orçamento -->
+  <!-- Usando Intl.NumberFormat para formatar os valores em reais -->
+  <!-- Usando Array.prototype.reduce para somar os valores por categoria -->
+  <!-- Usando Array.prototype.filter para filtrar os dados por mês atual -->
+  <!-- Usando Array.prototype.forEach para inserir os dados na tabela de detalhes -->
+  <!-- Usando document.getElementById para acessar os elementos do HTML -->
+  <!-- Usando document.createElement para criar novos elementos do HTML -->
+  <!-- Usando element.appendChild para adicionar elementos filhos ao HTML -->
+  <!-- Usando element.textContent para definir o conteúdo de texto dos elementos -->
+  <!-- Usando element.value para obter ou definir o valor dos elementos de entrada -->
+  <!-- Usando element.checked para verificar se um elemento de rádio está selecionado -->
+  <!-- Usando element.addEventListener para adicionar eventos aos elementos -->
+
+  <script>
+
+    // Função para formatar um número em reais
+    function formatarReais(valor) {
+      return new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL'}).format(valor);
+    }
+
+    // Função para atualizar o resumo com os dados do localStorage
+    function atualizarResumo() {
+      // Obter os dados do localStorage como um array de objetos
+      let dados = JSON.parse(localStorage.getItem('dados')) || [];
+
+      // Filtrar os dados pelo mês atual
+      let mesAtual = new Date().getMonth();
+      dados = dados.filter(dado => new Date(dado.data).getMonth() === mesAtual);
+
+      // Calcular a receita total
+      let receitaTotal = dados.reduce((total, dado) => {
+        if (dado.tipo === 'receita') {
+          return total + dado.valor;
+        } else {
+          return total;
+        }
+      }, 0);
+
+      // Calcular as despesas totais
+      let despesaTotal = dados.reduce((total, dado) => {
+        if (dado.tipo === 'despesa') {
+          return total + dado.valor;
+        } else {
+          return total;
+        }
+      }, 0);
+
+      // Calcular as despesas por categoria
+      let despesaEssencial = dados.reduce((total, dado) => {
+        if (dado.tipo === 'despesa' && dado.categoria === 'essencial') {
+          return total + dado.valor;
+        } else {
+          return total;
+        }
+      }, 0);
+
+      let despesaLivre = dados.reduce((total, dado) => {
+        if (dado.tipo === 'despesa' && dado.categoria === 'livre') {
+          return total + dado.valor;
+        } else {
+          return total;
+        }
+      }, 0);
+
+      let despesaDivida = dados.reduce((total, dado) => {
+        if (dado.tipo === 'despesa' && dado.categoria === 'divida') {
+          return total + dado.valor;
+        } else {
+          return total;
+        }
+      }, 0);
+
+      // Calcular os limites por categoria
+      let limiteEssencial = receitaTotal * 0.5;
+      let limiteLivre = receitaTotal * 0.35;
+      let limiteDivida = receitaTotal * 0.15;
+
+      // Calcular o saldo por categoria
+      let saldoEssencial = limiteEssencial - despesaEssencial;
+      let saldoLivre = limiteLivre - despesaLivre;
+      let saldoDivida = limiteDivida - despesaDivida;
+
+      // Calcular o saldo total
+      let saldoTotal = receitaTotal - despesaTotal;
+
+      // Obter o elemento do resumo
+      let resumo = document.getElementById('resumo');
+
+      // Limpar o conteúdo do resumo
+      resumo.textContent = '';
+
+      // Criar um elemento de parágrafo para cada informação
+      let pReceitaTotal = document.createElement('p');
+      pReceitaTotal.textContent = `Receita Total: ${formatarReais(receitaTotal)}`;
+
+      let pDespesaTotal = document.createElement('p');
+      pDespesaTotal.textContent = `Despesa Total: ${formatarReais(despesaTotal)}`;
+
+      let pSaldoTotal = document.createElement('p');
+      pSaldoTotal.textContent = `Saldo Total: ${formatarReais(saldoTotal)}`;
+
+      let pDespesaEssencial = document.createElement('p');
+      pDespesaEssencial.textContent = `Despesa Essencial: ${formatarReais(despesaEssencial)} / ${formatarReais(limiteEssencial)} (${(despesaEssencial / limiteEssencial * 100).toFixed(2)}%)`;
+
+      let pSaldoEssencial = document.createElement('p');
+      pSaldoEssencial.textContent = `Saldo Essencial: ${formatarReais(saldoEssencial)}`;
+
+      let pDespesaLivre = document.createElement('p');
+      pDespesaLivre.textContent = `Despesa Livre: ${formatarReais(despesaLivre)} / ${formatarReais(limiteLivre)} (${(despesaLivre / limiteLivre * 100).toFixed(2)}%)`;
+
+      let pSaldoLivre = document.createElement('p');
+      pSaldoLivre.textContent = `Saldo Livre: ${formatarReais(saldoLivre)}`;
+
+      let pDespesaDivida = document.createElement('p');
+      pDespesaDivida.textContent = `Despesa Dívida/Economia: ${formatarReais(despesaDivida)} / ${formatarReais(limiteDivida)} (${(despesaDivida / limiteDivida * 100).toFixed(2)}%)`;
+
+      let pSaldoDivida = document.createElement('p');
+      pSaldoDivida.textContent = `Saldo Dívida/Economia: ${formatarReais(saldoDivida)}`;
+
+      // Adicionar os elementos de parágrafo ao resumo
+      resumo.appendChild(pReceitaTotal);
+      resumo.appendChild(pDespesaTotal);
+      resumo.appendChild(pSaldoTotal);
+      resumo.appendChild(pDespesaEssencial);
+      resumo.appendChild(pSaldoEssencial);
+      resumo.appendChild(pDespesaLivre);
+      resumo.appendChild(pSaldoLivre);
+      resumo.appendChild(pDespesaDivida);
+      resumo.appendChild(pSaldoDivida);
+
+    }
+
+    // Função para atualizar os detalhes com os dados do localStorage
+    function atualizar
+      Detalhes() {
+      // Obter os dados do localStorage como um array de objetos
+      let dados = JSON.parse(localStorage.getItem('dados')) || [];
+
+      // Filtrar os dados pelo mês atual
+      let mesAtual = new Date().getMonth();
+      dados = dados.filter(dado => new Date(dado.data).getMonth() === mesAtual);
+
+      // Obter o elemento da tabela de detalhes
+      let detalhes = document.getElementById('detalhes');
+
+      // Limpar o conteúdo da tabela de detalhes, mantendo a primeira linha
+      while (detalhes.rows.length > 1) {
+        detalhes.deleteRow(1);
+      }
+
+      // Inserir os dados na tabela de detalhes, criando uma nova linha para cada dado
+      dados.forEach(dado => {
+        let novaLinha = detalhes.insertRow();
+        let celulaData = novaLinha.insertCell();
+        let celulaTipo = novaLinha.insertCell();
+        let celulaValor = novaLinha.insertCell();
+        let celulaDescricao = novaLinha.insertCell();
+        let celulaCategoria = novaLinha.insertCell();
+
+        celulaData.textContent = dado.data;
+        celulaTipo.textContent = dado.tipo;
+        celulaValor.textContent = formatarReais(dado.valor);
+        celulaDescricao.textContent = dado.descricao;
+        celulaCategoria.textContent = dado.categoria;
+      });
+    }
+
+    // Função para adicionar um novo dado ao localStorage e atualizar o resumo e os detalhes
+    function adicionarDado(evento) {
+      // Evitar que o formulário seja enviado e recarregue a página
+      evento.preventDefault();
+
+      // Obter os elementos de entrada do formulário
+      let tipo = document.querySelector('input[name="tipo"]:checked');
+      let valor = document.querySelector('input[name="valor"]');
+      let descricao = document.querySelector('input[name="descricao"]');
+      let categoria = document.querySelector('select[name="categoria"]');
+
+      // Criar um objeto com os dados do formulário
+      let dado = {
+        data: new Date().toLocaleDateString(),
+        tipo: tipo.value,
+        valor: Number(valor.value),
+        descricao: descricao.value,
+        categoria: categoria.value
+      };
+
+      // Obter os dados do localStorage como um array de objetos
+      let dados = JSON.parse(localStorage.getItem('dados')) || [];
+
+      // Adicionar o novo dado ao array de dados
+      dados.push(dado);
+
+      // Salvar o array de dados no localStorage como uma string JSON
+      localStorage.setItem('dados', JSON.stringify(dados));
+
+      // Atualizar o resumo e os detalhes com os novos dados
+      atualizarResumo();
+      atualizarDetalhes();
+
+      // Limpar o formulário para uma nova entrada
+      tipo.checked = false;
+      valor.value = '';
+      descricao.value = '';
+      categoria.value = '';
+    }
+
+    // Adicionar um evento de submit ao formulário para chamar a função de adicionar dado
+    document.getElementById('form').addEventListener('submit', adicionarDado);
+
+    // Atualizar o resumo e os detalhes ao carregar a página com os dados do localStorage
+    window.addEventListener('load', () => {
+      atualizarResumo();
+      atualizarDetalhes();
+    });
+
+  </script>
+</body>
+</html>
